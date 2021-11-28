@@ -1,2 +1,2 @@
-web: python twitter_follow_bot.py
-worker: python twitter_follow_bot.py
+web: python main.py
+worker: python main.py
