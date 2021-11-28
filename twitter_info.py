@@ -1,0 +1,7 @@
+import os
+
+OAUTH_TOKEN = os.getenv('OAUTH_TOKEN')
+OAUTH_SECRET = os.getenv('OAUTH_SECRET')
+CONSUMER_KEY = os.getenv('CONSUMER_KEY')
+CONSUMER_SECRET = os.getenv('CONSUMER_SECRET')
+TWITTER_HANDLE = os.getenv('TWITTER_HANDLE')
