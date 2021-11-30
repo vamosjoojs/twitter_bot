@@ -40,7 +40,11 @@ def search_tweets(q, count=100, result_type="recent"):
         Returns a list of tweets matching a certain phrase (hashtag, word, etc.)
     """
 
-    return t.search.tweets(q=q, result_type=result_type, count=count, place_country='BR')
+    result = t.geo.search(query="BR", granularity="country")
+    place_id = result['result']['places'][0]['id']
+
+    result = t.search.tweets(q=f"{q} AND place:{place_id}", result_type=result_type, count=count)
+    return result
 
 
 def auto_fav(q, count=100, result_type="recent"):
@@ -251,6 +255,9 @@ total = 0
 is_finished_day = False
 while True:
     try:
+        if now.day in [1, 7, 14, 21, 30]:
+            print(f"LIMPEZA SEMANAL ... dia {now.day}")
+            auto_unfollow_nonfollowers()
         if not is_finished_day:
             print("auto follow")
             auto_follow(q=os.getenv('tag'), count=10)
@@ -258,9 +265,6 @@ while True:
             print("aguardando 2 minutos para começar novamente o loop")
             time.sleep(120)
             if total >= int(os.getenv('total')):
-                if now.day in [1, 7, 14, 21, 30]:
-                    print(f"LIMPEZA SEMANAL ... dia {now.day}")
-                    auto_unfollow_nonfollowers()
                 print("Parando por hoje!")
                 is_finished_day = True
         else:
