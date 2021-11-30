@@ -258,6 +258,9 @@ while True:
             print("aguardando 2 minutos para começar novamente o loop")
             time.sleep(120)
             if total >= int(os.getenv('total')):
+                if now.day in [1, 7, 14, 21, 30]:
+                    print(f"LIMPEZA SEMANAL ... dia {now.day}")
+                    auto_unfollow_nonfollowers()
                 print("Parando por hoje!")
                 is_finished_day = True
         else:
