@@ -255,7 +255,7 @@ total = 0
 is_finished_day = False
 while True:
     try:
-        if now.day in [1, 7, 14, 21, 30]:
+        if now.day in [7, 14, 21, 30]:
             print(f"LIMPEZA SEMANAL ... dia {now.day}")
             auto_unfollow_nonfollowers()
         if not is_finished_day:
