@@ -1,34 +1,9 @@
-# -*- coding: utf-8 -*-
-
-"""
-Copyright 2014 Randal S. Olson
-
-This file is part of the Twitter Follow Bot library.
-
-The Twitter Follow Bot library is free software: you can redistribute it and/or
-modify it under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your option) any
-later version.
-
-The Twitter Follow Bot library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with the Twitter
-Follow Bot library. If not, see http://www.gnu.org/licenses/.
-
-Code only slightly modified by Programming for Marketers to allow for separate variable 
-storage.
-"""
 import datetime
 import time
 
 from twitter import Twitter, OAuth, TwitterHTTPError
-import os
 from twitter_info import *
 
-# put the full path and file name of the file you want to store your "already followed"
-# list in
 ALREADY_FOLLOWED_FILE = "already-followed.csv"
 
 t = Twitter(auth=OAuth(OAUTH_TOKEN, OAUTH_SECRET,
@@ -113,7 +88,7 @@ def get_do_not_follow_list():
     return do_not_follow
 
 
-def auto_follow(q, count, result_type="recent"):
+def auto_follow(q, count, max_per_round, result_type='recent'):
     """
         Follows anyone who tweets about a specific phrase (hashtag, word, etc.)
     """
@@ -122,6 +97,7 @@ def auto_follow(q, count, result_type="recent"):
     following = set(t.friends.ids(screen_name=TWITTER_HANDLE)["ids"])
     do_not_follow = get_do_not_follow_list()
 
+    round = 0
     for tweet in result["statuses"]:
         try:
             if (tweet["user"]["screen_name"] != TWITTER_HANDLE and
@@ -132,6 +108,9 @@ def auto_follow(q, count, result_type="recent"):
                 following.update(set([tweet["user"]["id"]]))
 
                 print("followed %s" % (tweet["user"]["screen_name"]))
+                round += 1
+                if round >= max_per_round:
+                    break
 
         except TwitterHTTPError as e:
             print("error: %s" % (str(e)))
@@ -140,25 +119,6 @@ def auto_follow(q, count, result_type="recent"):
             if "blocked" not in str(e).lower():
                 quit()
 
-
-def auto_follow_followers_for_user(user_screen_name, count=100):
-    """
-        Follows the followers of a user
-    """
-    following = set(t.friends.ids(screen_name=TWITTER_HANDLE)["ids"])
-    followers_for_user = set(t.followers.ids(screen_name=user_screen_name)["ids"][:count]);
-    do_not_follow = get_do_not_follow_list()
-    
-    for user_id in followers_for_user:
-        try:
-            if (user_id not in following and 
-                user_id not in do_not_follow):
-
-                t.friendships.create(user_id=user_id, follow=False)
-                print("followed %s" % user_id)
-
-        except TwitterHTTPError as e:
-            print("error: %s" % (str(e)))
 
 def auto_follow_followers():
     """
@@ -250,27 +210,25 @@ def auto_unmute():
             t.mutes.users.destroy(user_id=user_id)
             print("unmuted %d" % (user_id))
 
-now = datetime.datetime.now().date()
 total = 0
-is_finished_day = False
+
 while True:
     try:
-        if now.day in [7, 14, 21, 30]:
-            print(f"LIMPEZA SEMANAL ... dia {now.day}")
+        following = set(t.friends.ids(screen_name=TWITTER_HANDLE)["ids"])
+        if len(following) >= int(os.getenv('total_geral')):
+            print("Não roda mais")
+            break
+        if datetime.datetime.utcnow().day in [7, 14, 21, 30]:
+            print(f"LIMPEZA SEMANAL ... dia {datetime.datetime.utcnow().day}")
             auto_unfollow_nonfollowers()
-        if not is_finished_day:
-            print("auto follow")
-            auto_follow(q=os.getenv('tag'), count=10)
-            total += 10
-            print("aguardando 2 minutos para começar novamente o loop")
-            time.sleep(120)
-            if total >= int(os.getenv('total')):
-                print("Parando por hoje!")
-                is_finished_day = True
-        else:
-            if now != datetime.datetime.now().date():
-                is_finished_day = False
-
+        print("auto follow")
+        auto_follow(q=os.getenv('tag'), max_per_round=10, count=100)
+        total += 10
+        print("aguardando 1 hora para começar novamente o loop")
+        time.sleep(3600)
+        if total >= int(os.getenv('total')):
+            print("Parando por hoje!")
+            break
     except Exception as e:
         print(e)
         break
