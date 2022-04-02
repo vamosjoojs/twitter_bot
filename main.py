@@ -222,7 +222,7 @@ while True:
             print(f"LIMPEZA SEMANAL ... dia {datetime.datetime.utcnow().day}")
             auto_unfollow_nonfollowers()
         print("auto follow")
-        auto_follow(q=os.getenv('tag'), max_per_round=10, count=100)
+        auto_follow(q=os.getenv('tag'), max_per_round=30, count=100)
         total += 10
         print("aguardando 1 hora para começar novamente o loop")
         time.sleep(3600)
