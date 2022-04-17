@@ -218,9 +218,9 @@ while True:
         if len(following) >= int(os.getenv('total_geral')):
             print("Não roda mais")
             break
-        if datetime.datetime.utcnow().day in [7, 14, 21, 30]:
-            print(f"LIMPEZA SEMANAL ... dia {datetime.datetime.utcnow().day}")
-            auto_unfollow_nonfollowers()
+        #if datetime.datetime.utcnow().day in [7, 14, 21, 30]:
+        #    print(f"LIMPEZA SEMANAL ... dia {datetime.datetime.utcnow().day}")
+        #    auto_unfollow_nonfollowers()
         print("auto follow")
         auto_follow(q=os.getenv('tag'), max_per_round=30, count=100)
         total += 10
